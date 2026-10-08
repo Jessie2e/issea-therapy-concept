@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -19,58 +19,14 @@ import {
   specialties,
 } from "./siteContent";
 import jesPhoto from "./assets/jes-coleman.jpg";
+import practiceLogo from "./assets/logo.png";
+import { formEndpoint, submitInquiry } from "./inquiry.js";
 
 function LogoMark() {
   return (
-    <svg
-      className="logo-mark refined-logo"
-      viewBox="0 0 64 64"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="isseaLogoFill" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f8fbfd" />
-          <stop offset="100%" stopColor="#e3edf4" />
-        </linearGradient>
-
-        <linearGradient id="isseaLogoStroke" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#2f5d86" />
-          <stop offset="100%" stopColor="#87a7c2" />
-        </linearGradient>
-      </defs>
-
-      <circle
-        cx="32"
-        cy="32"
-        r="29"
-        fill="url(#isseaLogoFill)"
-        stroke="rgba(27,67,98,.18)"
-        strokeWidth="1.2"
-      />
-
-      <path
-        d="M19.5 21.5 L31.7 16.7 L44.2 24.8 L39.1 43.2 L24 39.1 Z"
-        fill="none"
-        stroke="url(#isseaLogoStroke)"
-        strokeWidth="1.55"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="M19.5 21.5 L24 39.1 M31.7 16.7 L39.1 43.2"
-        fill="none"
-        stroke="url(#isseaLogoStroke)"
-        strokeWidth="1.05"
-        strokeLinecap="round"
-      />
-
-      <circle cx="19.5" cy="21.5" r="3.25" fill="#2f5d86" />
-      <circle cx="31.7" cy="16.7" r="2.7" fill="#7895ae" />
-      <circle cx="44.2" cy="24.8" r="3" fill="#afa6c2" />
-      <circle cx="24" cy="39.1" r="2.85" fill="#95aaa5" />
-      <circle cx="39.1" cy="43.2" r="3.35" fill="#4e7699" />
-    </svg>
+    <span className="logo-mark refined-logo">
+      <img src={practiceLogo} alt="" className="practice-logo-image" />
+    </span>
   );
 }
 
@@ -84,9 +40,75 @@ function SectionHeading({ eyebrow, title, text, align = "left" }) {
   );
 }
 
+function CardCollection({ id, label, className, children }) {
+  const track = useRef(null);
+  const [position, setPosition] = useState({ start: true, end: false });
+  useEffect(() => {
+    const element = track.current;
+    const update = () => setPosition({
+      start: element.scrollLeft <= 2,
+      end: element.scrollLeft + element.clientWidth >= element.scrollWidth - 2,
+    });
+    update();
+    element.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => { element.removeEventListener("scroll", update); observer.disconnect(); };
+  }, []);
+  const move = (direction) => {
+    const element = track.current;
+    const card = element.firstElementChild;
+    const gap = parseFloat(getComputedStyle(element).columnGap) || 0;
+    element.scrollBy({ left: direction * (card.getBoundingClientRect().width + gap),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  };
+  return (
+    <div className="card-collection">
+      <div ref={track} id={id} className={`${className} card-track`} role="region" aria-label={label} tabIndex={0}>
+        {children}
+      </div>
+      <div className="collection-controls">
+        <span>Swipe or use the arrows to explore</span>
+        <div>
+          <button type="button" aria-label={`Previous ${label}`} aria-controls={id} disabled={position.start} onClick={() => move(-1)}><ChevronRight className="previous-arrow" size={20} /></button>
+          <button type="button" aria-label={`Next ${label}`} aria-controls={id} disabled={position.end} onClick={() => move(1)}><ChevronRight size={20} /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showAppointment, setShowAppointment] = useState(false);
+  const [formState, setFormState] = useState({ status: "idle", message: "" });
+
+  useEffect(() => {
+    const update = () => {
+      const heroAction = document.querySelector(".hero-actions");
+      const contact = document.getElementById("contact");
+      setShowAppointment(heroAction.getBoundingClientRect().bottom < 0 && contact.getBoundingClientRect().top > window.innerHeight);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
+
+  async function handleInquiry(event) {
+    event.preventDefault();
+    if (!formEndpoint || formState.status === "sending") return;
+    const form = event.currentTarget;
+    setFormState({ status: "sending", message: "Sending your request…" });
+    try {
+      await submitInquiry(formEndpoint, new FormData(form));
+      form.reset();
+      setFormState({ status: "success", message: "Thank you. Your request has been sent. Jes will follow up using the contact information you provided." });
+    } catch {
+      setFormState({ status: "error", message: "Your request could not be sent. Please try again or call us. Your entries are still here." });
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -127,12 +149,8 @@ function App() {
         <div className="nav-wrap">
           <a className="brand" href="#home" aria-label="ISSEA home">
             <LogoMark />
-
             <div className="brand-text">
               <strong>{site.practiceName}</strong>
-              <span className="brand-mini">
-                Intervention Services of Southeast Alabama
-              </span>
             </div>
           </a>
 
@@ -145,7 +163,7 @@ function App() {
           </nav>
 
           <div className="nav-actions">
-            <a className="btn btn-ghost portal-button" href={site.portalUrl}>
+            <a className="portal-button" href={site.portalUrl}>
               Client Portal
             </a>
 
@@ -156,7 +174,8 @@ function App() {
             <button
               className="menu-button"
               type="button"
-              aria-label="Open navigation"
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              aria-controls="mobile-navigation"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((value) => !value)}
             >
@@ -166,7 +185,7 @@ function App() {
         </div>
 
         {menuOpen && (
-          <div className="mobile-nav">
+          <nav className="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation">
             {navItems.map(([label, href]) => (
               <a
                 key={label}
@@ -192,7 +211,7 @@ function App() {
             >
               Request Appointment
             </a>
-          </div>
+          </nav>
         )}
       </header>
 
@@ -200,9 +219,9 @@ function App() {
         <section className="hero" id="home">
           <div className="hero-grid">
             <div className="hero-copy reveal">
-              <div className="hero-kicker">
+              <div className="hero-kicker practice-introduction">
                 <span className="kicker-dot" />
-                Specialized therapy • Enterprise, Alabama
+                {site.practiceFullName}
               </div>
 
               <h1>
@@ -212,7 +231,7 @@ function App() {
               </h1>
 
               <p className="hero-text">
-                Thoughtful, specialized therapy for trauma, stress, sexual
+                Thoughtful, specialized therapy in Enterprise, Alabama, for trauma, stress, sexual
                 health concerns, first responders, veterans, and people who
                 need a therapist comfortable with complex conversations.
               </p>
@@ -245,7 +264,7 @@ function App() {
 
                 <span>
                   <Check size={14} />
-                  Specialized assessment
+                  Individualized care
                 </span>
               </div>
             </div>
@@ -254,7 +273,7 @@ function App() {
               <div className="hero-portrait-card">
                 <img
                   src={jesPhoto}
-                  alt="Jes Coleman"
+                  alt="Jes Coleman, therapist at ISSEA in Enterprise, Alabama"
                   className="hero-portrait"
                 />
 
@@ -364,7 +383,7 @@ function App() {
               text="You should not have to translate your experience into generic language before a therapist can understand it. These are areas where specialized knowledge matters."
             />
 
-            <div className="specialty-grid">
+            <CardCollection className="specialty-grid" id="specialty-cards" label="specialties">
               {specialties.map((item, index) => (
                 <article className="specialty-card" key={item.title}>
                   <div className="card-index">
@@ -377,12 +396,17 @@ function App() {
 
                   <p>{item.text}</p>
 
-                  <a href="#contact">
+                  <a href={item.title === "Lifespan Integration" ? "#lifespan" : "#contact"} aria-label={`Learn more about ${item.title}`}>
                     Learn more <ArrowRight size={15} />
                   </a>
                 </article>
               ))}
-            </div>
+            </CardCollection>
+            <details className="additional-services">
+              <summary>Other specialized services</summary>
+              <p>Adolescent problematic sexual behavior treatment and psychosexual assessments are offered on a limited basis. Please contact Jes to discuss availability and whether these services fit your needs.</p>
+              <a className="text-link" href="#contact">Ask about availability <ArrowRight size={16} /></a>
+            </details>
           </div>
         </section>
 
@@ -516,8 +540,10 @@ function App() {
             <div className="portrait-placeholder real-photo">
               <img
                 src={jesPhoto}
-                alt="Jes Coleman"
+                alt="Jes Coleman, therapist at ISSEA in Enterprise, Alabama"
                 className="about-photo"
+                loading="lazy"
+                decoding="async"
               />
 
               <div className="credential-card">
@@ -550,7 +576,7 @@ function App() {
               <div className="credential-chips">
                 <span>Trauma-informed</span>
                 <span>First responder counseling</span>
-                <span>Psychosexual assessment</span>
+                <span>Collaborative care</span>
                 <span>Lifespan Integration</span>
               </div>
             </div>
@@ -571,7 +597,7 @@ function App() {
               </a>
             </div>
 
-            <div className="resource-grid">
+            <CardCollection className="resource-grid" id="resource-cards" label="resources">
               {resources.map((item) => (
                 <article className="resource-card" key={item.title}>
                   <span>{item.tag}</span>
@@ -585,7 +611,7 @@ function App() {
                   </a>
                 </article>
               ))}
-            </div>
+            </CardCollection>
           </div>
         </section>
 
@@ -625,29 +651,38 @@ function App() {
 
             <form
               className="contact-form"
-              onSubmit={(event) => event.preventDefault()}
+              method="POST"
+              action={formEndpoint || undefined}
+              onSubmit={handleInquiry}
+              aria-label="Appointment inquiry"
+              aria-describedby="inquiry-note"
+              aria-busy={formState.status === "sending"}
             >
+              <p className="inquiry-note" id="inquiry-note">
+                {formEndpoint ? "Send a general appointment inquiry. Please do not include private medical details." : <>Online appointment requests are not available yet. Please <a href={site.phoneHref}>call {site.phoneDisplay}</a> to request an appointment.</>}
+              </p>
+              <fieldset disabled={!formEndpoint || formState.status === "sending"}>
+              <legend className="sr-only">Appointment request details</legend>
               <div className="form-row">
                 <label>
                   Name
-                  <input type="text" placeholder="Your name" />
+                  <input name="name" autoComplete="name" required maxLength={120} type="text" placeholder="Your name" />
                 </label>
 
                 <label>
                   Email
-                  <input type="email" placeholder="you@example.com" />
+                  <input name="email" autoComplete="email" required type="email" placeholder="you@example.com" />
                 </label>
               </div>
 
               <div className="form-row">
                 <label>
                   What are you looking for?
-                  <select defaultValue="">
+                  <select name="request_type" defaultValue="">
                     <option value="" disabled>
                       Choose one
                     </option>
                     <option>Therapy</option>
-                    <option>Psychosexual assessment</option>
                     <option>Professional / agency consultation</option>
                     <option>Not sure yet</option>
                   </select>
@@ -655,7 +690,7 @@ function App() {
 
                 <label>
                   Preferred format
-                  <select defaultValue="">
+                  <select name="preferred_format" defaultValue="">
                     <option value="" disabled>
                       Choose one
                     </option>
@@ -669,23 +704,21 @@ function App() {
               <div className="form-row">
                 <label>
                   Area of interest
-                  <select defaultValue="">
+                  <select name="area_of_interest" defaultValue="">
                     <option value="" disabled>
                       Choose one
                     </option>
                     <option>Trauma / PTSD</option>
                     <option>First responder / veteran support</option>
                     <option>Sexual health</option>
-                    <option>Problematic sexual behaviors</option>
                     <option>Lifespan Integration</option>
-                    <option>Assessment services</option>
                     <option>Other / not sure</option>
                   </select>
                 </label>
 
                 <label>
                   How did you find us?
-                  <select defaultValue="">
+                  <select name="referral_source" defaultValue="">
                     <option value="" disabled>
                       Choose one
                     </option>
@@ -702,13 +735,15 @@ function App() {
               <label>
                 Anything general you'd like us to know?
                 <textarea
+                  name="message"
+                  maxLength={2000}
                   rows="4"
                   placeholder="Please keep this brief and avoid private medical details."
                 />
               </label>
 
               <label className="checkbox-row">
-                <input type="checkbox" />
+                <input name="general_inquiry_acknowledged" value="yes" type="checkbox" required />
 
                 <span>
                   I understand this form is for general inquiries and is not a
@@ -717,26 +752,29 @@ function App() {
               </label>
 
               <button className="btn btn-primary btn-submit" type="submit">
-                Send Request
+                {formState.status === "sending" ? "Sending…" : "Send Request"}
                 <ArrowRight size={17} />
               </button>
+              </fieldset>
+              <p className={`form-status ${formState.status}`} role="status" aria-live="polite" aria-atomic="true">{formState.message}</p>
             </form>
           </div>
         </section>
       </main>
 
+      {showAppointment && !menuOpen && (
+        <a className="mobile-appointment btn btn-primary" href="#contact">Request Appointment <ArrowRight size={17} /></a>
+      )}
+
       <footer>
         <div className="content-wrap footer-grid">
           <div className="footer-brand">
-            <a className="brand footer-logo" href="#home">
+            <a className="brand footer-logo" href="#home" aria-label="ISSEA home">
               <LogoMark />
-
-              <div className="brand-text">
-                <strong>{site.practiceName}</strong>
-                <span className="brand-mini">
-                  Intervention Services of Southeast Alabama
-                </span>
-              </div>
+            <div className="brand-text">
+              <strong>{site.practiceName}</strong>
+              <span className="brand-mini">Intervention Services of Southeast Alabama</span>
+            </div>
             </a>
 
             <p>
@@ -744,7 +782,7 @@ function App() {
             </p>
 
             <p>
-              Specialized therapy and assessment services in Enterprise,
+              Specialized therapy in Enterprise,
               Alabama, with telehealth options available.
             </p>
           </div>
@@ -769,8 +807,9 @@ function App() {
         <div className="footer-bottom">
           <div className="content-wrap footer-bottom-inner">
             <span>© 2026 ISSEA. Mockup concept.</span>
+            <span className="studio-credit">Designed by 2e Studio</span>
 
-            <span>
+            <span className="footer-notice">
               This website does not provide emergency services. If you are in
               immediate danger, call 911 or 988.
             </span>

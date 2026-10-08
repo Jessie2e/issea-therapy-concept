@@ -1,7 +1,7 @@
 export const site = {
   practiceName: "ISSEA",
   practiceFullName:
-    "Integration • Strength • Support • Empowerment • Alignment",
+    "Intervention Services of Southeast Alabama",
   provider: "Jes Coleman",
   credentials: "LICSW-S, LISW, CTAPSB, CPAS, CFRC",
   location: "Enterprise, Alabama",
@@ -34,16 +34,7 @@ export const specialties = [
     title: "Sexual Health Concerns",
     text: "Direct, nonjudgmental therapy for sexual dysfunction, betrayal, victimization, and other sensitive concerns.",
   },
-  {
-    eyebrow: "Specialized care",
-    title: "Problematic Sexual Behaviors",
-    text: "Treatment for adolescents and children with problematic sexual behaviors, approached with structure, care, and clear clinical boundaries.",
-  },
-  {
-    eyebrow: "Assessment",
-    title: "Psychosexual Assessments",
-    text: "Specialized assessment services for agencies, attorneys, and clients who need careful, clinically informed evaluation.",
-  },
+
 ];
 
 export const fitPoints = [
@@ -72,10 +63,8 @@ export const resources = [
 ];
 
 export const navItems = [
-  ["Home", "#home"],
   ["About", "#about"],
   ["Services", "#services"],
-  ["Lifespan Integration", "#lifespan"],
   ["Resources", "#resources"],
   ["Contact", "#contact"],
 ];
