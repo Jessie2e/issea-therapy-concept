@@ -514,24 +514,38 @@ function App() {
               </a>
             </div>
 
-            <div className="responder-mark" aria-hidden="true">
-              <div className="mark-grid">
-                {Array.from({ length: 36 }).map((_, index) => (
-                  <span
-                    key={index}
-                    className={
-                      index % 7 === 0 || index % 11 === 0 ? "active" : ""
-                    }
-                  />
-                ))}
-              </div>
-
-              <div className="mark-caption">
-                <span>calm</span>
-                <span>clarity</span>
-                <span>capacity</span>
-              </div>
-            </div>
+            <figure className="responder-mark">
+              <svg className="steadiness-art" viewBox="0 0 540 330" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="steadiness-line" x1="20" y1="160" x2="510" y2="160" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#83abc8" stopOpacity=".55" />
+                    <stop offset=".48" stopColor="#adc0bb" stopOpacity=".85" />
+                    <stop offset="1" stopColor="#c8d5b5" />
+                  </linearGradient>
+                  <linearGradient id="steadiness-fade" x1="20" y1="160" x2="340" y2="160" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#8cacc6" stopOpacity=".3" />
+                    <stop offset="1" stopColor="#8cacc6" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <g stroke="url(#steadiness-fade)" strokeWidth="1.2" strokeLinecap="round">
+                  <path d="M20 70 C95 8 190 284 80 261 S116 5 216 119 S270 258 350 174" />
+                  <path d="M20 260 C105 312 158 2 76 76 S160 315 242 205 S283 93 356 158" />
+                  <path d="M25 154 C148 35 22 319 165 281 S128 24 254 92 S301 171 360 169" />
+                  <path d="M20 110 C136 220 69 16 176 60 S117 318 270 235 S285 158 370 165" />
+                  <path d="M28 227 C131 29 171 320 110 212 S210 32 263 145 S300 215 360 188" />
+                </g>
+                <g stroke="url(#steadiness-line)" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M20 91 C95 30 57 260 146 231 S132 59 217 99 S274 146 345 119 S436 104 510 108" />
+                  <path d="M20 173 C95 296 142 17 94 106 S191 288 238 201 S310 151 366 160 S449 166 510 164" />
+                  <path d="M20 254 C120 236 42 51 154 129 S176 306 254 250 S305 204 369 216 S445 224 510 220" />
+                </g>
+                <circle cx="510" cy="164" r="5" fill="#d6b262" />
+                <circle cx="510" cy="164" r="12" stroke="#d6b262" strokeOpacity=".25" />
+              </svg>
+              <figcaption className="mark-caption">
+                <span>Chaos</span><span>Clarity</span><span>Capacity</span><span>Calm</span>
+              </figcaption>
+            </figure>
           </div>
         </section>
 
