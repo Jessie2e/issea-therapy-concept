@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { formEndpoint, submitInquiry } from '../src/inquiry.js';
+assert.equal(formEndpoint, '');
+const data = new FormData();
+data.set('name', 'Local Test');
+data.set('email', 'test@example.invalid');
+data.set('general_inquiry_acknowledged', 'yes');
+let calls = 0;
+await submitInquiry('https://formspree.io/f/testid', data, async (url, options) => {
+  calls++;
+  assert.equal(url, 'https://formspree.io/f/testid');
+  assert.equal(options.method, 'POST');
+  assert.equal(options.headers.Accept, 'application/json');
+  assert.equal(options.body.get('email'), 'test@example.invalid');
+  assert.ok(options.signal);
+  return { ok: true };
+});
+assert.equal(calls, 1);
+await assert.rejects(submitInquiry('https://formspree.io/f/testid', data, async () => ({ ok: false })), /did not accept/);
+await assert.rejects(submitInquiry('https://formspree.io/f/testid', data, async () => { throw new Error('Network unavailable'); }), /Network unavailable/);
+await assert.rejects(submitInquiry('https://unapproved.example/f/test', data, async () => { throw new Error('Should not be called'); }), /Invalid form endpoint/);
+console.log('Form request success, HTTP failure, network failure, and invalid endpoint checks passed without sending data.');
