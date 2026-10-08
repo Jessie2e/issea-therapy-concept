@@ -903,24 +903,6 @@ button {
   background: rgba(255, 255, 255, 0.035);
 }
 
-.mark-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 14px;
-}
-
-.mark-grid span {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-}
-
-.mark-grid span.active {
-  background: rgba(197, 216, 229, 0.74);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
-}
-
 .mark-caption {
   margin-top: 26px;
   display: flex;
@@ -1674,7 +1656,7 @@ footer {
 .info-icon { background: var(--sage-soft); color: var(--sage-ink); }
 .credential-chips span:nth-child(even) { background: var(--sage-soft); color: var(--sage-ink); }
 .timeline-line .timeline-now { background: var(--sage-ink); border-color: var(--sage-ink); box-shadow: 0 0 0 8px rgba(130, 148, 101, .20); }
-.mark-grid span.active { background: #acbd91; }
+
 .additional-services { margin-top: 28px; padding: 20px 24px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .additional-services summary { cursor: pointer; color: var(--blue-800); font-weight: 650; font-size: 14px; }
 .additional-services p { max-width: 760px; color: #607686; line-height: 1.65; font-size: 14px; }
@@ -1802,3 +1784,23 @@ footer {
   .mobile-nav { max-height: calc(100dvh - 90px); overflow-y: auto; }
   .card-collection { scroll-margin-bottom: 90px; }
 }
+
+/* From overlapping signals to three steady curves. */
+.responder-mark { display: block; max-width: 500px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.steadiness-art { display: block; width: 100%; height: auto; overflow: visible; }
+.mark-caption { margin: 0 0 0 35%; padding-top: 8px; gap: 18px; color: #c8d5b5; font-size: 12px; letter-spacing: .09em; line-height: 1.5; text-transform: none; }
+.responder-section::after { display: none; }
+@media (max-width: 1100px) {
+  .responder-grid { gap: 38px; grid-template-columns: 1.05fr 1fr; }
+  .mark-caption { gap: 10px; font-size: 11px; }
+}
+@media (max-width: 820px) {
+  .responder-grid { grid-template-columns: 1fr; gap: 24px; }
+  .responder-mark { display: block; width: min(100%, 410px); justify-self: center; }
+  .steadiness-art { max-height: 220px; }
+  .mark-caption { padding-top: 0; margin-left: 25%; font-size: 12px; }
+}
+
+/* Labels follow the illustration from tangled lines to calm. */
+.mark-caption { margin-left: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; text-align: center; }
+.mark-caption span:first-child { color: #a5bed1; }
